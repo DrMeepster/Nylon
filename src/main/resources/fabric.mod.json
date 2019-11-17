@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "nylon",
+	"version": "${version}",
+	"name": "Nylon",
+	"description": "Library for creation of items that contain other items",
+	"authors": [
+		"DrMeepster"
+	],
+	"contact": {
+		"sources": "https://github.com/DrMeepster/nylon"
+	},
+	"license": "MIT",
+	"icon": "assets/modid/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+		]
+	},
+	"mixins": [
+	],
+	"depends": {
+		"fabricloader": ">=0.4.0",
+		"fabric": "*"
+	},
+	"custom": {
+		"modmenu:api": true
+	}
+}
