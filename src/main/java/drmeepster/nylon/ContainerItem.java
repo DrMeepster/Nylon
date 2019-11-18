@@ -17,11 +17,12 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.PacketByteBuf;
 import net.minecraft.world.World;
 
-public abstract class ContainerItem<C extends Container, S extends AbstractContainerScreen<C>, I extends Inventory> extends Item{
+public abstract class ContainerItem<C extends Container, S extends AbstractContainerScreen<C>, I extends Inventory>
+	extends Item{
 
 	public final Identifier CONTAINER_ID;
 
-	public ContainerItem(Settings settings, Identifier containerId, int size){
+	public ContainerItem(Settings settings, Identifier containerId){
 		super(settings);
 
 		this.CONTAINER_ID = containerId;
@@ -47,11 +48,7 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 		});
 	}
 
-	public abstract class ContainerProvider implements ContainerFactory<C>{
-		
-		public ContainerProvider(InventoryProvider inventory){
-			
-		}
+	public abstract class ContainerProvider implements ContainerFactory<Container>{
 
 		@Override
 		public C create(int syncId, Identifier identifier, PlayerEntity player, PacketByteBuf buf){
@@ -62,11 +59,12 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 			PacketByteBuf buf);
 	}
 
-	public abstract class ScreenProvider implements ContainerFactory<S>{
+	@SuppressWarnings("rawtypes")
+	public abstract class ScreenProvider implements ContainerFactory<AbstractContainerScreen>{
 
 		@Override
 		public S create(int syncId, Identifier identifier, PlayerEntity player, PacketByteBuf buf){
-			Container container = ContainerProviderImpl.INSTANCE.createContainer(syncId, identifier, player, buf);
+			C container = ContainerProviderImpl.INSTANCE.createContainer(syncId, identifier, player, buf);
 
 			ItemStack stack = ContainerItem.this.getContainerStack(player, buf);
 
@@ -74,7 +72,7 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 		}
 
 		public abstract S create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack,
-			Container container, PacketByteBuf buf);
+			C container, PacketByteBuf buf);
 	}
 
 	/**
@@ -89,17 +87,17 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 		}
 
 		@Override
-		public I create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack,
-			Container container, PacketByteBuf buf){
+		public I create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack, PacketByteBuf buf){
 
 			DefaultedList<ItemStack> list = DefaultedList.ofSize(this.size, ItemStack.EMPTY);
 
 			Inventories.fromTag(stack.getTag(), list);
 
-			return this.fromList(list);
+			return this.create(syncId, identifier, player, stack, list, buf);
 		}
 
-		public abstract I fromList(DefaultedList<ItemStack> list);
+		public abstract I create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack,
+			DefaultedList<ItemStack> list, PacketByteBuf buf);
 
 	}
 }

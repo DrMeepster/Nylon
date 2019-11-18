@@ -15,6 +15,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
+			"drmeepster.nylon.NylonMod"
 		]
 	},
 	"mixins": [
