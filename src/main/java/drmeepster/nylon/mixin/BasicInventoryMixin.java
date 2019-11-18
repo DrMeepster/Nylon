@@ -10,11 +10,12 @@ import net.minecraft.recipe.RecipeInputProvider;
 import net.minecraft.util.DefaultedList;
 
 @Mixin(BasicInventory.class)
-public abstract class BasicInventoryMixin implements Inventory, RecipeInputProvider {
+public abstract class BasicInventoryMixin implements Inventory, RecipeInputProvider, BasicInventoryExtension {
 	
 	@Shadow
 	private DefaultedList<ItemStack> stackList;
 	
+	@Override
 	public DefaultedList<ItemStack> getStacks(){
 		return stackList;
 	}
