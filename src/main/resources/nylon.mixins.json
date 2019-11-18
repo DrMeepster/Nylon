@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "drmeepster.nylon.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [
+		"BasicInventoryMixin"
+	],
+	"client": [
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
