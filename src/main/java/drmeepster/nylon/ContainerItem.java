@@ -29,7 +29,7 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 	}
 
 	public ItemStack getContainerStack(PlayerEntity player, PacketByteBuf buf){
-		return player.inventory.getInvStack(buf.readInt());
+		return player.inventory.getInvStack(buf.duplicate().readInt());
 	}
 
 	public void open(World world, PlayerEntity player, ItemStack stack){
