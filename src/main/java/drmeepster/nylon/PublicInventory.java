@@ -1,9 +1,10 @@
-package drmeepster.nylon.mixinlib;
+package drmeepster.nylon;
 
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DefaultedList;
 
-public interface BasicInventoryExtension{
+public interface PublicInventory extends Inventory{
 
 	public DefaultedList<ItemStack> getStacks();
 }

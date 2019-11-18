@@ -8,8 +8,10 @@ import net.fabricmc.fabric.impl.container.ContainerProviderImpl;
 import net.minecraft.client.gui.screen.ingame.AbstractContainerScreen;
 import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.BasicInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.InventoryListener;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DefaultedList;
@@ -22,10 +24,13 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 
 	public final Identifier CONTAINER_ID;
 
-	public ContainerItem(Settings settings, Identifier containerId){
+	public int size;
+
+	public ContainerItem(Settings settings, Identifier containerId, int size){
 		super(settings);
 
 		this.CONTAINER_ID = containerId;
+		this.size = size;
 	}
 
 	public ItemStack getContainerStack(PlayerEntity player, PacketByteBuf buf){
@@ -46,6 +51,18 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 		ContainerProviderRegistry.INSTANCE.openContainer(this.CONTAINER_ID, player, buf -> {
 			buf.writeInt(index);
 		});
+	}
+
+	public DefaultedList<ItemStack> getStacks(ItemStack stack){
+		DefaultedList<ItemStack> list = DefaultedList.ofSize(this.size, ItemStack.EMPTY);
+
+		Inventories.fromTag(stack.getTag(), list);
+
+		return list;
+	}
+
+	public void setStacks(ItemStack stack, DefaultedList<ItemStack> stacks){
+		Inventories.toTag(stack.getTag(), stacks);
 	}
 
 	public abstract class ContainerProvider implements ContainerFactory<Container>{
@@ -71,8 +88,8 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 			return this.create(syncId, identifier, player, stack, container, buf);
 		}
 
-		public abstract S create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack,
-			C container, PacketByteBuf buf);
+		public abstract S create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack, C container,
+			PacketByteBuf buf);
 	}
 
 	/**
@@ -80,24 +97,48 @@ public abstract class ContainerItem<C extends Container, S extends AbstractConta
 	 */
 	public abstract class InventoryProvider implements ItemInventoryProvider<I>{
 
-		public int size;
-
-		public InventoryProvider(int estimatedSize){
-			this.size = estimatedSize;
-		}
-
 		@Override
 		public I create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack, PacketByteBuf buf){
-
-			DefaultedList<ItemStack> list = DefaultedList.ofSize(this.size, ItemStack.EMPTY);
-
-			Inventories.fromTag(stack.getTag(), list);
-
-			return this.create(syncId, identifier, player, stack, list, buf);
+			return this.create(syncId, identifier, player, stack, ContainerItem.this.getStacks(stack), buf);
 		}
 
 		public abstract I create(int syncId, Identifier identifier, PlayerEntity player, ItemStack stack,
 			DefaultedList<ItemStack> list, PacketByteBuf buf);
+	}
+	
+	public abstract class ContainerInventory extends BasicInventory{
+		
+		public ItemStack containerStack;
+		
+		public ContainerInventory(ItemStack containerStack, int size){
+			super(size);
+			
+			this.containerStack = containerStack;
+		}
 
+		public ContainerInventory(ItemStack containerStack, ItemStack... stacks){
+			super(stacks);
+			
+			this.containerStack = containerStack;
+		}
+		
+		{
+			this.addListener(new ContainerInventoryListener());
+		}
+		
+		public ItemStack getContainerStack(){
+			return containerStack;
+		}
+	}
+	
+	public class ContainerInventoryListener implements InventoryListener{
+
+		@Override
+		public void onInvChange(Inventory inventory){
+			@SuppressWarnings("unchecked")
+			ContainerInventory inv = (ContainerInventory) inventory;
+			
+			ContainerItem.this.setStacks(inv.getContainerStack(), ((PublicInventory)inv).getStacks());
+		}
 	}
 }
